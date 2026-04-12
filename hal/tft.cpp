@@ -1,17 +1,7 @@
 #include "tft.h"
-#include "hasp_conf.h"
-
-#if defined(HASP_USE_SPI_TFT) && HASP_USE_SPI_TFT > 0
-
-#include "ArduinoLog.h"
-#include "driver/timer.h"
 
 #ifdef USE_TFT_ESPI
 #include <TFT_eSPI.h>
-
-// Include the user setup file
-#include <UserSetup.h>
-#include "../user_setups/setup_ttgo_lolin32.h"    
 
 TFT_eSPI tft = TFT_eSPI();
 
@@ -42,7 +32,6 @@ void tft_init()
     // Add a delay to ensure display has time to show content
     delay(500);
     
-    LOG_INFO(TAG_TFT, "TFT initialized");
     Serial.println("TFT init completed");
 }
 
@@ -57,4 +46,3 @@ void tft_write_data(uint8_t data)
 }
 
 #endif // USE_TFT_ESPI
-#endif // HASP_USE_SPI_TFT
