@@ -30,7 +30,10 @@ void tft_init()
     tft.println("TFT Initialized");
     
     // Add a delay to ensure display has time to show content
-    delay(500);
+    delay(1000);
+    
+    // Clear screen for main content
+    tft.fillScreen(TFT_BLACK);
     
     Serial.println("TFT init completed");
 }

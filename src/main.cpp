@@ -14,10 +14,9 @@ void setup() {
     tft_init();
     
     // Wait a bit for display to stabilize
-    delay(100);
+    delay(500);
     
-    // Clear screen and draw our content
-    tft.fillScreen(TFT_BLACK);
+    // Draw our content (screen already cleared in tft_init)
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(3);
 
