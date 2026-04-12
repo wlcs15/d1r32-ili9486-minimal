@@ -1,7 +1,8 @@
 #include <Arduino.h>
-#include <TFT_eSPI.h>
+#include "hal/tft.h"
 
-extern TFT_eSPI tft; // Use the TFT instance from hal/tft.cpp
+// Use the TFT instance from hal/tft.cpp
+extern TFT_eSPI tft;
 
 void setup() {
     Serial.begin(115200);
@@ -10,7 +11,6 @@ void setup() {
     Serial.printf("Compiled: %s %s | Free heap: %u\n", __DATE__, __TIME__, ESP.getFreeHeap());
 
     // Initialize TFT through HAL
-    extern void tft_init(); // Declare the function from hal/tft.cpp
     tft_init();
     
     tft.setRotation(1);   // Try 1 first, then change to 3 and re-flash if needed

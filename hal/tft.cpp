@@ -13,14 +13,13 @@
 #include <UserSetup.h>
 #include "../user_setups/setup_ttgo_lolin32.h"    
 
-
 TFT_eSPI tft = TFT_eSPI();
 
 void tft_init()
 {
     Serial.println("TFT init starting...");
     tft.begin();
-    tft.setRotation(TFT_ROTATION);
+    tft.setRotation(1);  // Set rotation directly here
     
     // Set backlight pin and turn on
     pinMode(TFT_BCKL, OUTPUT);
