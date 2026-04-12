@@ -18,23 +18,29 @@ TFT_eSPI tft = TFT_eSPI();
 void tft_init()
 {
     Serial.println("TFT init starting...");
+    
+    // Set backlight pin LOW initially
+    pinMode(TFT_BCKL, OUTPUT);
+    digitalWrite(TFT_BCKL, LOW);
+    Serial.println("Backlight LOW");
+    
+    // Initialize TFT
     tft.begin();
     tft.setRotation(1);  // Set rotation directly here
+    tft.fillScreen(TFT_BLACK);
     
-    // Set backlight pin and turn on
-    pinMode(TFT_BCKL, OUTPUT);
-    digitalWrite(TFT_BCKL, HIGH); // Turn on backlight
+    // Turn on backlight after initialization
+    digitalWrite(TFT_BCKL, HIGH);
     Serial.println("Backlight HIGH");
     
     // Clear screen with a color to verify functionality
-    tft.fillScreen(TFT_BLACK);
     tft.setCursor(0, 0);
     tft.setTextColor(TFT_WHITE);
     tft.setTextSize(2);
-    tft.println("Initializing...");
+    tft.println("TFT Ready");
     
     // Add a delay to ensure display has time to show content
-    delay(100);
+    delay(200);
     
     LOG_INFO(TAG_TFT, "TFT initialized");
     Serial.println("TFT init completed");
