@@ -30,7 +30,10 @@ void tft_init()
     tft.setTextSize(2);
     tft.println("Initializing...");
     
-    LOG_INFO(TAG_TFT, "TFT initialized");
+     // Add a delay to ensure display has time to show content                                                                                               
++    delay(100);                                                                                                                                             
++  
+     LOG_INFO(TAG_TFT, "TFT initialized");
 }
 
 void tft_write_command(uint8_t cmd)
