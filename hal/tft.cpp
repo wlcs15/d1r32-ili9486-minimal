@@ -16,7 +16,7 @@ void tft_init()
     
     // Initialize TFT
     tft.begin();
-    tft.setRotation(1);  // Set rotation - match with main.cpp
+    tft.setRotation(1);  // Set rotation
     tft.fillScreen(TFT_BLACK);
     
     // Turn on backlight after initialization
