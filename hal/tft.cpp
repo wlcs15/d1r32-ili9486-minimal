@@ -19,28 +19,28 @@ void tft_init()
 {
     Serial.println("TFT init starting...");
     
-    // Set backlight pin LOW initially
+    // Initialize pins
     pinMode(TFT_BCKL, OUTPUT);
-    digitalWrite(TFT_BCKL, LOW);
-    Serial.println("Backlight LOW");
+    digitalWrite(TFT_BCKL, LOW);  // Backlight off during init
+    Serial.println("Backlight OFF");
     
     // Initialize TFT
     tft.begin();
-    tft.setRotation(1);  // Set rotation directly here
+    tft.setRotation(1);  // Set rotation - match with main.cpp
     tft.fillScreen(TFT_BLACK);
     
     // Turn on backlight after initialization
     digitalWrite(TFT_BCKL, HIGH);
-    Serial.println("Backlight HIGH");
+    Serial.println("Backlight ON");
     
-    // Clear screen with a color to verify functionality
+    // Show initialization message
     tft.setCursor(0, 0);
-    tft.setTextColor(TFT_WHITE);
+    tft.setTextColor(TFT_GREEN);
     tft.setTextSize(2);
-    tft.println("TFT Ready");
+    tft.println("TFT Initialized");
     
     // Add a delay to ensure display has time to show content
-    delay(200);
+    delay(500);
     
     LOG_INFO(TAG_TFT, "TFT initialized");
     Serial.println("TFT init completed");

@@ -13,8 +13,10 @@ void setup() {
     // Initialize TFT through HAL
     tft_init();
     
-    // Additional drawing after initialization
-    tft.setRotation(1);   // Ensure rotation is set
+    // Wait a bit for display to stabilize
+    delay(100);
+    
+    // Clear screen and draw our content
     tft.fillScreen(TFT_BLACK);
     tft.setTextColor(TFT_WHITE, TFT_BLACK);
     tft.setTextSize(3);
@@ -34,6 +36,7 @@ void loop() {
         // Add periodic screen refresh to ensure display is working
         tft.setCursor(0, 200);
         tft.setTextSize(2);
+        tft.setTextColor(TFT_YELLOW, TFT_BLACK);
         tft.printf("Uptime: %lus", millis()/1000);
         
         last = millis();
