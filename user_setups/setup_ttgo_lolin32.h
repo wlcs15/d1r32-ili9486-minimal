@@ -1,3 +1,4 @@
+#ifndef USER_SETUP_LOADED   
 #define USER_SETUP_LOADED
 
 #define ILI9486_DRIVER
@@ -27,3 +28,5 @@
 #define USE_HSPI_PORT
 
 #define SUPPORT_TRANSACTIONS
+                                                                                                                                                      
+#endif // USER_SETUP_LOADED   

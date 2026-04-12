@@ -11,6 +11,8 @@
 
 // Include the user setup file
 #include <UserSetup.h>
+#include "../user_setups/setup_ttgo_lolin32.h"    
+
 
 TFT_eSPI tft = TFT_eSPI();
 
