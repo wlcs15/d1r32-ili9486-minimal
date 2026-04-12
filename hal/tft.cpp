@@ -18,10 +18,14 @@ TFT_eSPI tft = TFT_eSPI();
 
 void tft_init()
 {
+    Serial.println("TFT init starting...");
     tft.begin();
     tft.setRotation(TFT_ROTATION);
+    
+    // Set backlight pin and turn on
     pinMode(TFT_BCKL, OUTPUT);
     digitalWrite(TFT_BCKL, HIGH); // Turn on backlight
+    Serial.println("Backlight HIGH");
     
     // Clear screen with a color to verify functionality
     tft.fillScreen(TFT_BLACK);
@@ -30,10 +34,11 @@ void tft_init()
     tft.setTextSize(2);
     tft.println("Initializing...");
     
-     // Add a delay to ensure display has time to show content                                                                                               
-+    delay(100);                                                                                                                                             
-+  
-     LOG_INFO(TAG_TFT, "TFT initialized");
+    // Add a delay to ensure display has time to show content
+    delay(100);
+    
+    LOG_INFO(TAG_TFT, "TFT initialized");
+    Serial.println("TFT init completed");
 }
 
 void tft_write_command(uint8_t cmd)
