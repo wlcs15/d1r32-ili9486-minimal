@@ -68,7 +68,8 @@ if ($LASTEXITCODE -ne 0) { Get-Content "$Log.merge.log"; Write-Host "EMU smoke R
 
 $qemuLog = "$Log.qemu.log"
 Write-Host "=== QEMU esp32 boot (timeout ${Timeout}s) -> $qemuLog ==="
-$qargs = @("-machine", "esp32", "-nographic", "-no-reboot", "-drive", "file=$flash,if=mtd,format=raw", "-serial", "mon:stdio")
+# -icount shift=auto avoids a spurious early-boot TG0/TG1 watchdog reset under QEMU timing.
+$qargs = @("-machine", "esp32", "-nographic", "-no-reboot", "-icount", "shift=auto", "-drive", "file=$flash,if=mtd,format=raw", "-serial", "mon:stdio")
 $p = Start-Process -FilePath $qemu -ArgumentList $qargs -NoNewWindow -PassThru `
     -RedirectStandardOutput $qemuLog -RedirectStandardError "$qemuLog.err"
 $timedOut = -not $p.WaitForExit($Timeout * 1000)

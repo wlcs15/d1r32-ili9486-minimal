@@ -99,9 +99,12 @@ if ! "$pio_bin" pkg exec -p tool-esptoolpy -- esptool.py --chip esp32 merge_bin 
 fi
 
 # --- boot in QEMU ---
+# -icount shift=auto: without it, host-speed timing makes the early boot trip a
+# spurious TG0/TG1 watchdog reset in QEMU in most runs (seen 5 of 6 on the box).
+# -no-reboot turns any reset into a QEMU exit, so a real rst loop still FAILs.
 qemu_log="$log_base.qemu.log"
 echo "=== QEMU esp32 boot (timeout ${timeout_sec}s) -> $qemu_log ==="
-"$timeout_bin" "$timeout_sec" "$qemu_bin" -machine esp32 -nographic -no-reboot \
+"$timeout_bin" "$timeout_sec" "$qemu_bin" -machine esp32 -nographic -no-reboot -icount shift=auto \
   -drive "file=$flash_img,if=mtd,format=raw" -serial mon:stdio < /dev/null > "$qemu_log" 2>&1
 qrc=$?
 echo "EMU qemu exit=$qrc (124 = stopped by timeout, expected)"
