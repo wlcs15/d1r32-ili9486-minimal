@@ -15,6 +15,8 @@ param(
     [string]$Log = ""
 )
 $ErrorActionPreference = "Continue"
+# pio/esptool print non-ASCII; avoid cp1252 UnicodeEncodeError on Windows.
+$env:PYTHONIOENCODING = "utf-8"
 $Root = (Resolve-Path (Join-Path $PSScriptRoot "..")).Path
 Set-Location $Root
 $EnvName = "d1r32_ili9486"
