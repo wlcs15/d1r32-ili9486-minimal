@@ -80,8 +80,18 @@ $emptyIn = "$qemuLog.stdin"
 Set-Content -LiteralPath $emptyIn -Value $null -NoNewline
 $p = Start-Process -FilePath $qemu -ArgumentList $qargLine -NoNewWindow -PassThru `
     -RedirectStandardInput $emptyIn -RedirectStandardOutput $qemuLog -RedirectStandardError "$qemuLog.err"
-$timedOut = -not $p.WaitForExit($Timeout * 1000)
-if ($timedOut) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; $qrc = 124 } else { $qrc = $p.ExitCode }
+# Cache the process handle now: without it, Windows PowerShell's Start-Process -PassThru
+# object returns an empty ExitCode once the process has exited.
+$null = $p.Handle
+if ($p.WaitForExit($Timeout * 1000)) {
+    $p.WaitForExit()          # flush redirected output after a natural exit
+    $qrc = $p.ExitCode
+} else {
+    try { $p.Kill() } catch { }
+    $null = $p.WaitForExit(5000)
+    $qrc = 124                # same meaning as GNU timeout in the .sh
+}
+if ($null -eq $qrc -or "$qrc" -eq "") { $qrc = -1 }
 Write-Host "EMU qemu exit=$qrc (124 = stopped by timeout, expected)"
 
 $esc = [char]27
