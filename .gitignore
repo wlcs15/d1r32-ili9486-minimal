@@ -40,3 +40,6 @@
 # debug information files
 *.dwo
 .aider*
+
+# PlatformIO build output
+.pio/
