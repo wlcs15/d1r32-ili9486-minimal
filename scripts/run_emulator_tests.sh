@@ -4,7 +4,10 @@
 #
 # Build d1r32_ili9486 with PlatformIO, merge a 4MB flash image and boot it in
 # Espressif QEMU (qemu-system-xtensa -machine esp32) as a boot smoke test.
-# Usage: bash scripts/run_emulator_tests.sh [--timeout SEC] [--no-build] [--log PATH_BASE]
+# Usage: bash scripts/run_emulator_tests.sh [--timeout SEC] [--no-build] [--log PATH_BASE] [--keep-wdt]
+# By default the TIMG (TG0/TG1) watchdogs are disabled in QEMU only
+# (timer.esp32.timg wdt_disable=true): their resets are a QEMU timing artifact.
+# Real hardware keeps its watchdog. --keep-wdt leaves them enabled.
 # Exit: 0 PASS, 1 FAIL (or required tool MISSING).
 # Tool check prints FOUND / MISSING / DEFERRED only.
 set -uo pipefail
@@ -14,11 +17,13 @@ cd "$root"
 ENV_NAME=d1r32_ili9486
 timeout_sec=60
 no_build=0
+keep_wdt=0
 log_base="$root/.pio/emulator-smoke"
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --timeout) timeout_sec="$2"; shift 2 ;;
     --no-build) no_build=1; shift ;;
+    --keep-wdt) keep_wdt=1; shift ;;
     --log) log_base="$2"; shift 2 ;;
     -h|--help) sed -n 2,10p "$0"; exit 0 ;;
     *) echo "unknown arg: $1" >&2; exit 1 ;;
@@ -103,8 +108,13 @@ fi
 # spurious TG0/TG1 watchdog reset in QEMU in most runs (seen 5 of 6 on the box).
 # -no-reboot turns any reset into a QEMU exit, so a real rst loop still FAILs.
 qemu_log="$log_base.qemu.log"
+# Emulator-only: disable the TIMG (TG0/TG1) watchdogs. Under QEMU timing they fire
+# spuriously during early boot (TG0WDT/TG1WDT_SYS_RESET, seen on Linux and Windows).
+# This never touches the firmware; real hardware keeps its watchdog.
+wdt_args=(-global driver=timer.esp32.timg,property=wdt_disable,value=true)
+[[ $keep_wdt -eq 1 ]] && wdt_args=()
 echo "=== QEMU esp32 boot (timeout ${timeout_sec}s) -> $qemu_log ==="
-"$timeout_bin" "$timeout_sec" "$qemu_bin" -machine esp32 -nographic -no-reboot -icount shift=auto \
+"$timeout_bin" "$timeout_sec" "$qemu_bin" -machine esp32 -nographic -no-reboot -icount shift=auto "${wdt_args[@]}" \
   -drive "file=$flash_img,if=mtd,format=raw" -serial mon:stdio < /dev/null > "$qemu_log" 2>&1
 qrc=$?
 echo "EMU qemu exit=$qrc (124 = stopped by timeout, expected)"

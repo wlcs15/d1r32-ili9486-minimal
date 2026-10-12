@@ -3,11 +3,15 @@
 #
 # Windows twin of run_emulator_tests.sh: build d1r32_ili9486 with PlatformIO,
 # merge a 4MB flash image and boot it in Espressif QEMU (esp32) as a smoke test.
-#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_emulator_tests.ps1 [-Timeout SEC] [-NoBuild] [-Log PATH_BASE]
+#   powershell -NoProfile -ExecutionPolicy Bypass -File scripts\run_emulator_tests.ps1 [-Timeout SEC] [-NoBuild] [-Log PATH_BASE] [-KeepWdt]
+# By default the TIMG (TG0/TG1) watchdogs are disabled in QEMU only (timer.esp32.timg
+# wdt_disable=true): their resets are a QEMU timing artifact. Real hardware keeps its
+# watchdog. -KeepWdt leaves them enabled.
 # Exit: 0 PASS, 1 FAIL (or required tool MISSING). Tool check prints FOUND / MISSING / DEFERRED only.
 param(
     [int]$Timeout = 60,
     [switch]$NoBuild,
+    [switch]$KeepWdt,
     [string]$Log = ""
 )
 $ErrorActionPreference = "Continue"
@@ -73,6 +77,9 @@ Write-Host "=== QEMU esp32 boot (timeout ${Timeout}s) -> $qemuLog ==="
 # plain spaces (no quoting) on Windows PowerShell 5.1, so build one string and quote
 # any argument that contains a space (e.g. a flash path under "C:\Users\First Last").
 $qargs = @("-machine", "esp32", "-nographic", "-no-reboot", "-icount", "shift=auto", "-drive", "file=$flash,if=mtd,format=raw", "-serial", "mon:stdio")
+# Emulator-only: disable TIMG (TG0/TG1) watchdogs; under QEMU timing they fire spuriously
+# in early boot (TG0WDT/TG1WDT_SYS_RESET). Real hardware keeps its watchdog.
+if (-not $KeepWdt) { $qargs += @("-global", "driver=timer.esp32.timg,property=wdt_disable,value=true") }
 $qargLine = ($qargs | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' '
 Write-Host "qemu: $qemu $qargLine"
 # Match the .sh "< /dev/null": give QEMU an empty stdin so mon:stdio never reads the console.
