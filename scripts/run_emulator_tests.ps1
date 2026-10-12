@@ -95,10 +95,20 @@ if ($null -eq $qrc -or "$qrc" -eq "") { $qrc = -1 }
 Write-Host "EMU qemu exit=$qrc (124 = stopped by timeout, expected)"
 
 $esc = [char]27
-$text = (Get-Content -LiteralPath $qemuLog -Raw -ErrorAction SilentlyContinue)
-if (-not $text) { $text = "" }
+# Serial output is QEMU stdout ($qemuLog); QEMU's own messages go to $qemuLog.err.
+# The .sh merges both (2>&1), so evaluate both here too. Strip ANSI colour and CR
+# (Windows CRLF) so '^rst:' and the banner match on every line.
+$text = ""
+foreach ($f in @($qemuLog, "$qemuLog.err")) {
+    if (Test-Path -LiteralPath $f) {
+        $t = Get-Content -LiteralPath $f -Raw -ErrorAction SilentlyContinue
+        if ($t) { $text += $t + "`n" }
+    }
+}
 $text = $text -replace "$esc\[[0-9;]*m", "" -replace "`r", ""
 $lines = $text -split "`n"
+$cleanLog = "$Log.qemu.clean.log"
+Set-Content -LiteralPath $cleanLog -Value $lines
 $fail = $false
 if (-not ($lines | Select-String -SimpleMatch "=== Minimal D1 R32")) { Write-Host "FAIL: app boot banner not seen"; $fail = $true }
 $bad = $lines | Select-String -Pattern 'Guru Meditation|panic|abort\(\)|Backtrace:'
@@ -109,4 +119,6 @@ if ($qrc -ne 0 -and $qrc -ne 124) { Write-Host "FAIL: QEMU exited $qrc"; $fail =
 Write-Host "--- key boot lines ---"
 $lines | Select-String -Pattern '^rst:|Minimal D1 R32|Compiled:|TFT init|init \+ draw|\[Uptime' | Select-Object -First 15 | ForEach-Object { Write-Host $_.Line }
 if (-not $fail) { Write-Host "EMU smoke RESULT: PASS (log $qemuLog)"; exit 0 }
+Write-Host "--- last serial/QEMU lines ---"
+$lines | Where-Object { $_ -ne "" } | Select-Object -Last 15 | ForEach-Object { Write-Host $_ }
 Write-Host "EMU smoke RESULT: FAIL (log $qemuLog)"; exit 1
