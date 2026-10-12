@@ -69,9 +69,17 @@ if ($LASTEXITCODE -ne 0) { Get-Content "$Log.merge.log"; Write-Host "EMU smoke R
 $qemuLog = "$Log.qemu.log"
 Write-Host "=== QEMU esp32 boot (timeout ${Timeout}s) -> $qemuLog ==="
 # -icount shift=auto avoids a spurious early-boot TG0/TG1 watchdog reset under QEMU timing.
+# Same argument list as run_emulator_tests.sh. Start-Process joins -ArgumentList with
+# plain spaces (no quoting) on Windows PowerShell 5.1, so build one string and quote
+# any argument that contains a space (e.g. a flash path under "C:\Users\First Last").
 $qargs = @("-machine", "esp32", "-nographic", "-no-reboot", "-icount", "shift=auto", "-drive", "file=$flash,if=mtd,format=raw", "-serial", "mon:stdio")
-$p = Start-Process -FilePath $qemu -ArgumentList $qargs -NoNewWindow -PassThru `
-    -RedirectStandardOutput $qemuLog -RedirectStandardError "$qemuLog.err"
+$qargLine = ($qargs | ForEach-Object { if ($_ -match '\s') { '"' + $_ + '"' } else { $_ } }) -join ' '
+Write-Host "qemu: $qemu $qargLine"
+# Match the .sh "< /dev/null": give QEMU an empty stdin so mon:stdio never reads the console.
+$emptyIn = "$qemuLog.stdin"
+Set-Content -LiteralPath $emptyIn -Value $null -NoNewline
+$p = Start-Process -FilePath $qemu -ArgumentList $qargLine -NoNewWindow -PassThru `
+    -RedirectStandardInput $emptyIn -RedirectStandardOutput $qemuLog -RedirectStandardError "$qemuLog.err"
 $timedOut = -not $p.WaitForExit($Timeout * 1000)
 if ($timedOut) { Stop-Process -Id $p.Id -Force -ErrorAction SilentlyContinue; $qrc = 124 } else { $qrc = $p.ExitCode }
 Write-Host "EMU qemu exit=$qrc (124 = stopped by timeout, expected)"
